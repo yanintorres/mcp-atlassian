@@ -560,7 +560,6 @@ Here's a complete example of setting up multi-user authentication with streamabl
 - `confluence_update_page`: Update an existing page
 
 <details> <summary>View All Tools</summary>
-
 | Operation | Jira Tools                          | Confluence Tools               |
 |-----------|-------------------------------------|--------------------------------|
 | **Read**  | `jira_search`                       | `confluence_search`            |
@@ -568,7 +567,7 @@ Here's a complete example of setting up multi-user authentication with streamabl
 |           | `jira_get_project_issues`           | `confluence_get_page_children` |
 |           | `jira_get_worklog`                  | `confluence_get_comments`      |
 |           | `jira_get_transitions`              | `confluence_get_labels`        |
-|           | `jira_search_fields`                |                                |
+|           | `jira_search_fields`                | `confluence_search_user`       |
 |           | `jira_get_agile_boards`             |                                |
 |           | `jira_get_board_issues`             |                                |
 |           | `jira_get_sprints_from_board`       |                                |
