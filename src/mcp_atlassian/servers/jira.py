@@ -1417,9 +1417,29 @@ async def get_all_projects(
         JSON string representing a list of project objects accessible to the user.
         Project keys are always returned in uppercase.
         If JIRA_PROJECTS_FILTER is configured, only returns projects matching those keys.
+
+    Raises:
+        ValueError: If the Jira client is not configured or available.
     """
-    jira = await get_jira_fetcher(ctx)
-    projects = jira.get_all_projects(include_archived=include_archived)
+    try:
+        jira = await get_jira_fetcher(ctx)
+        projects = jira.get_all_projects(include_archived=include_archived)
+    except (MCPAtlassianAuthenticationError, HTTPError, OSError, ValueError) as e:
+        error_message = ""
+        log_level = logging.ERROR
+        if isinstance(e, MCPAtlassianAuthenticationError):
+            error_message = f"Authentication/Permission Error: {str(e)}"
+        elif isinstance(e, OSError | HTTPError):
+            error_message = f"Network or API Error: {str(e)}"
+        elif isinstance(e, ValueError):
+            error_message = f"Configuration Error: {str(e)}"
+
+        error_result = {
+            "success": False,
+            "error": error_message,
+        }
+        logger.log(log_level, f"get_all_projects failed: {error_message}")
+        return json.dumps(error_result, indent=2, ensure_ascii=False)
 
     # Ensure all project keys are uppercase
     for project in projects:
@@ -1429,18 +1449,14 @@ async def get_all_projects(
     # Apply project filter if configured
     if jira.config.projects_filter:
         # Split projects filter by commas and handle possible whitespace
-        allowed_project_keys = [
+        allowed_project_keys = {
             p.strip().upper() for p in jira.config.projects_filter.split(",")
+        }
+        projects = [
+            project
+            for project in projects
+            if project.get("key") in allowed_project_keys
         ]
-
-        # Filter projects to only include those in the allowed list
-        filtered_projects = []
-        for project in projects:
-            project_key = project.get("key", "")
-            if project_key in allowed_project_keys:
-                filtered_projects.append(project)
-
-        projects = filtered_projects
 
     return json.dumps(projects, indent=2, ensure_ascii=False)
 
